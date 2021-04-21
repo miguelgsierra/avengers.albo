@@ -6,7 +6,7 @@ import java.util.Map;
 import lombok.Getter;
 
 public class Constants {
-    public static final String EDITOR = "editors";
+    public static final String EDITOR = "editor";
     public static final String WRITER = "writer";
     public static final String COLORIST = "colorist";
 

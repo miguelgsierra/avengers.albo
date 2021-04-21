@@ -1,6 +1,7 @@
 package mg.albo.avengers.services;
 
 import java.util.Date;
+import java.util.Optional;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import mg.albo.avengers.documents.Avenger;
 import mg.albo.avengers.exceptions.AvengerException;
 import mg.albo.avengers.models.Character;
 import mg.albo.avengers.models.Comic;
@@ -17,6 +19,7 @@ import mg.albo.avengers.models.Data;
 import mg.albo.avengers.models.DataCharacters;
 import mg.albo.avengers.models.DataCreators;
 import mg.albo.avengers.models.ResponseBody;
+import mg.albo.avengers.repositories.AvengerRepository;
 import mg.albo.avengers.utils.Constants;
 import mg.albo.avengers.utils.Constants.AvengerType;
 
@@ -35,38 +38,67 @@ public class AvengerServiceImpl implements AvengerService {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private AvengerRepository repository;
+
     @Override
     public void getCreators(String avengerCode) throws AvengerException {
         AvengerType avengerType = Constants.avengersAvailables.get(avengerCode);
         if (avengerType == null)
             throw new AvengerException(AvengerException.NotFoundException(avengerCode));
 
-        syncDataToDatabase(avengerType.getId());
+        syncDataToDatabase(avengerType.getId(), avengerType.getName());
     }
 
-    private void syncDataToDatabase(int marvelID) {
-        callApiMarvel(marvelID);
+    private void syncDataToDatabase(int marvelID, String avengerName) {
+        Avenger avenger = new Avenger(marvelID, avengerName);
+        Comic[] comics = callApiMarvel(marvelID);
+
+        for (Comic comic : comics) {
+            System.out.println("Comic: " + comic.getTitle());
+
+            DataCreators creators = comic.getCreators();
+            for (Creator creator : creators.getItems()) {
+                avenger.addCreator(creator);
+            }
+
+            DataCharacters characters = comic.getCharacters();
+            for (Character character : characters.getItems()) {
+                if (!character.getName().equals(avengerName)) {
+                    avenger.addCharacter(character.getName(), comic.getTitle());
+                }
+            }
+        }
+
+        save(marvelID, avenger);
     }
 
-    private void callApiMarvel(int marvelID) {
+    private void save(int marvelID, Avenger body) {
+        Optional<Avenger> avenger = repository.findByMarvelId(marvelID);
+
+        long lastSync = new Date().getTime();
+        if(avenger.isPresent()) {
+            Avenger avengerToUpdate = avenger.get();
+            avengerToUpdate.setLast_sync(lastSync);
+            avengerToUpdate.setEditors(body.getEditors());
+            avengerToUpdate.setWriters(body.getWriters());
+            avengerToUpdate.setColorists(body.getColorists());
+            avengerToUpdate.setCharacters(body.getCharacters());
+
+            repository.save(avengerToUpdate);
+        } else {
+            body.setLast_sync(lastSync);
+            repository.save(body);
+        }
+    }
+
+    private Comic[] callApiMarvel(int marvelID) {
         String url = getApiMarvelUrl(marvelID);
         ResponseEntity<ResponseBody> response = restTemplate.getForEntity(url, ResponseBody.class);
         ResponseBody body = response.getBody();
         Data data = body.getData();
 
-        for (Comic comic : data.getResults()) {
-            System.out.println("Comic: " + comic.getTitle());
-
-            DataCreators creators = comic.getCreators();
-            for (Creator creator : creators.getItems()) {
-                System.out.println("[" + creator.getRole() + "]: " + creator.getName());
-            }
-
-            // DataCharacters characters = comic.getCharacters();
-            // for (Character character : characters.getItems()) {
-
-            // }
-        }
+        return data.getResults();
     }
 
     private String getHash(long ts) {
