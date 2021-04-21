@@ -10,4 +10,8 @@ public class AvengerException extends Exception {
     public static String NotFoundException(String code) {
         return "Avenger " + code + " not found!";
     }
+    
+    public static String NotFoundDBException(int marvelID) {
+        return "Avenger id " + marvelID + " not found in database!";
+    }
 }

@@ -1,7 +1,11 @@
 package mg.albo.avengers.utils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import lombok.Getter;
 
@@ -27,4 +31,11 @@ public class Constants {
             put("capamerica", new AvengerType(1009220, "Captain America"));
         }
     };
+
+    public static String getTimeFormated(long time) {
+        Date date = new Date(time);
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        formatter.setTimeZone(TimeZone.getDefault());
+        return formatter.format(date);
+    }
 }

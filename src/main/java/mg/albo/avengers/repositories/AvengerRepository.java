@@ -11,4 +11,7 @@ public interface AvengerRepository extends MongoRepository<Avenger, String> {
     
     @Query("{'marvelID': ?0}")
     public Optional<Avenger> findByMarvelId(int marvelID);
+    
+    @Query(value = "{'marvelID': ?0}", fields = "{'lastSync': 1, 'editors': 1, 'writers': 1, 'colorists': 1}")
+    public Optional<Avenger> getColaborators(int marvelID);
 }

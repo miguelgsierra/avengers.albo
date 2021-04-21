@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import mg.albo.avengers.documents.Avenger;
 import mg.albo.avengers.exceptions.AvengerException;
 import mg.albo.avengers.services.AvengerService;
 
@@ -22,8 +23,8 @@ public class MarvelController {
     public ResponseEntity<?> getCharacters(@PathVariable("name") String name) {
 
         try {
-            service.getCreators(name);
-            return new ResponseEntity<String>("Servicio ok", HttpStatus.OK);
+            Avenger avenger = service.getCreators(name);
+            return new ResponseEntity<>(avenger.getColaboratorsResult(), HttpStatus.OK);
         } catch (AvengerException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {

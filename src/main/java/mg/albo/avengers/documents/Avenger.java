@@ -1,6 +1,8 @@
 package mg.albo.avengers.documents;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.validation.constraints.NotNull;
@@ -31,7 +33,7 @@ public class Avenger {
     private int marvelID;
 
     @NotNull(message = "Last sync time cannot be null")
-    private long last_sync;
+    private long lastSync;
 
     private Set<String> editors = new HashSet<>();
     private Set<String> writers = new HashSet<>();
@@ -54,12 +56,23 @@ public class Avenger {
 
     public void addCharacter(String character, String comic) {
         Character found = this.characters.stream().filter(c -> character.equals(c.getName())).findFirst().orElse(null);
-        if(found == null) {
+        if (found == null) {
             found = new Character();
             found.setName(character);
         }
 
         found.addComic(comic);
         this.characters.add(found);
+    }
+
+    public Map<String, Object> getColaboratorsResult() {
+        Map<String, Object> map = new HashMap<>();
+
+        String last_sync = "Fecha de última sincronización en " + Constants.getTimeFormated(this.getLastSync());
+        map.put("last_sync", last_sync);
+        map.put("editors", this.getEditors());
+        map.put("writers", this.getWriters());
+        map.put("colorists", this.getColorists());
+        return map;
     }
 }

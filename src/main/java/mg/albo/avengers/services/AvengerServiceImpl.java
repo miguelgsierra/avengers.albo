@@ -42,12 +42,14 @@ public class AvengerServiceImpl implements AvengerService {
     private AvengerRepository repository;
 
     @Override
-    public void getCreators(String avengerCode) throws AvengerException {
+    public Avenger getCreators(String avengerCode) throws AvengerException {
         AvengerType avengerType = Constants.avengersAvailables.get(avengerCode);
         if (avengerType == null)
             throw new AvengerException(AvengerException.NotFoundException(avengerCode));
 
         syncDataToDatabase(avengerType.getId(), avengerType.getName());
+
+        return getColaborators(avengerType.getId());
     }
 
     private void syncDataToDatabase(int marvelID, String avengerName) {
@@ -55,8 +57,6 @@ public class AvengerServiceImpl implements AvengerService {
         Comic[] comics = callApiMarvel(marvelID);
 
         for (Comic comic : comics) {
-            System.out.println("Comic: " + comic.getTitle());
-
             DataCreators creators = comic.getCreators();
             for (Creator creator : creators.getItems()) {
                 avenger.addCreator(creator);
@@ -77,9 +77,9 @@ public class AvengerServiceImpl implements AvengerService {
         Optional<Avenger> avenger = repository.findByMarvelId(marvelID);
 
         long lastSync = new Date().getTime();
-        if(avenger.isPresent()) {
+        if (avenger.isPresent()) {
             Avenger avengerToUpdate = avenger.get();
-            avengerToUpdate.setLast_sync(lastSync);
+            avengerToUpdate.setLastSync(lastSync);
             avengerToUpdate.setEditors(body.getEditors());
             avengerToUpdate.setWriters(body.getWriters());
             avengerToUpdate.setColorists(body.getColorists());
@@ -87,9 +87,17 @@ public class AvengerServiceImpl implements AvengerService {
 
             repository.save(avengerToUpdate);
         } else {
-            body.setLast_sync(lastSync);
+            body.setLastSync(lastSync);
             repository.save(body);
         }
+    }
+
+    private Avenger getColaborators(int marvelID) throws AvengerException {
+        Optional<Avenger> result = repository.getColaborators(marvelID);
+        if (!result.isPresent())
+            throw new AvengerException(AvengerException.NotFoundDBException(marvelID));
+
+        return result.get();
     }
 
     private Comic[] callApiMarvel(int marvelID) {
