@@ -75,4 +75,13 @@ public class Avenger {
         map.put("colorists", this.getColorists());
         return map;
     }
+
+    public Map<String, Object> getCharactersResult() {
+        Map<String, Object> map = new HashMap<>();
+
+        String last_sync = "Fecha de última sincronización en " + Constants.getTimeFormated(this.getLastSync());
+        map.put("last_sync", last_sync);
+        map.put("characters", this.getCharacters());
+        return map;
+    }
 }

@@ -19,12 +19,26 @@ public class MarvelController {
     @Autowired
     private AvengerService service;
 
-    @GetMapping("/characters/{name}")
-    public ResponseEntity<?> getCharacters(@PathVariable("name") String name) {
+    @GetMapping("/colaborators/{name}")
+    public ResponseEntity<?> getColaborators(@PathVariable("name") String name) {
 
         try {
             Avenger avenger = service.getCreators(name);
             return new ResponseEntity<>(avenger.getColaboratorsResult(), HttpStatus.OK);
+        } catch (AvengerException e) {
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+    
+    @GetMapping("/characters/{name}")
+    public ResponseEntity<?> getCharacters(@PathVariable("name") String name) {
+
+        try {
+            Avenger avenger = service.getCharacters(name);
+            return new ResponseEntity<>(avenger.getCharactersResult(), HttpStatus.OK);
         } catch (AvengerException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {

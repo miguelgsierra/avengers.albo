@@ -5,4 +5,5 @@ import mg.albo.avengers.exceptions.AvengerException;
 
 public interface AvengerService {
     public Avenger getCreators(String avengerCode) throws AvengerException;
+    public Avenger getCharacters(String avengerCode) throws AvengerException;
 }

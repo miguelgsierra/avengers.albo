@@ -51,6 +51,17 @@ public class AvengerServiceImpl implements AvengerService {
 
         return getColaborators(avengerType.getId());
     }
+    
+    @Override
+    public Avenger getCharacters(String avengerCode) throws AvengerException {
+        AvengerType avengerType = Constants.avengersAvailables.get(avengerCode);
+        if (avengerType == null)
+            throw new AvengerException(AvengerException.NotFoundException(avengerCode));
+
+        syncDataToDatabase(avengerType.getId(), avengerType.getName());
+
+        return getCharacters(avengerType.getId());
+    }
 
     private void syncDataToDatabase(int marvelID, String avengerName) {
         Avenger avenger = new Avenger(marvelID, avengerName);
@@ -94,6 +105,14 @@ public class AvengerServiceImpl implements AvengerService {
 
     private Avenger getColaborators(int marvelID) throws AvengerException {
         Optional<Avenger> result = repository.getColaborators(marvelID);
+        if (!result.isPresent())
+            throw new AvengerException(AvengerException.NotFoundDBException(marvelID));
+
+        return result.get();
+    }
+    
+    private Avenger getCharacters(int marvelID) throws AvengerException {
+        Optional<Avenger> result = repository.getCharacters(marvelID);
         if (!result.isPresent())
             throw new AvengerException(AvengerException.NotFoundDBException(marvelID));
 
