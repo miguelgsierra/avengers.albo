@@ -1,12 +1,14 @@
 package mg.albo.avengers.models;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class Character {
-    private String name;
+public class ResponseBody {
+    private int code;
+    private String status;
+    private Data data;
 }
